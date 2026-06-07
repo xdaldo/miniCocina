@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Mini Cocina · Selección visual de ingredientes</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon">🥦</div>
+        <div>
+          <div class="sidebar-logo-text">Mini Cocina</div>
+          <div class="sidebar-logo-sub">Tu despensa personal</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="snav-item active" data-page="recipes" onclick="goTab(this)">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+          Recetas
+        </button>
+        <button class="snav-item" data-page="kitchen" onclick="goTab(this)">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/><circle cx="7" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="7" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="7" cy="18" r="1.5" fill="currentColor" stroke="none"/></svg>
+          Mi Cocina
+        </button>
+        <button class="snav-item" data-page="new" onclick="goTab(this)">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+          Nueva receta
+        </button>
+      </nav>
+    </div>
+    <div class="sidebar-user">
+      <div id="sideUserLoggedIn" style="display:none">
+        <div class="user-email-row">
+          <div class="user-avatar" id="sideAvatar">U</div>
+          <div class="user-email-txt" id="sideEmail"></div>
+        </div>
+      </div>
+      <div id="sideLoginForm">
+        <div style="font-size:11px;color:rgba(255,255,255,.5);margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Tu correo</div>
+        <div class="login-form-side">
+          <input type="email" id="sideEmailIn" placeholder="tu@correo.com" autocomplete="email">
+          <button onclick="doLogin()">Entrar</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <div class="main">
+
+    <!-- TOPBAR mobile -->
+    <div class="topbar">
+      <div class="topbar-logo">🥦 Mini Cocina</div>
+      <div class="topbar-login">
+        <input type="email" id="topEmailIn" placeholder="tu@correo.com" autocomplete="email">
+        <button onclick="doLogin()">OK</button>
+      </div>
+    </div>
+
+    <div class="pages">
+
+      <!-- ── RECETAS (sin cambios visuales) ── -->
+      <div class="page active" id="page-recipes">
+        <div class="page-header">
+          <div class="page-title">Recetas</div>
+          <div class="recipe-count" id="recCount"></div>
+        </div>
+        <div class="chip-row" id="chips">
+          <div class="chip active" data-f="all">Todas</div>
+          <div class="chip" data-f="full">✓ Tengo todo</div>
+          <div class="chip" data-f="partial">Casi listas</div>
+          <div class="chip" data-f="top">⭐ Mejor votadas</div>
+        </div>
+        <div class="recipes-grid" id="recipesList"></div>
+      </div>
+
+      <!-- ── COCINA (con cuadrícula y buscador) ── -->
+      <div class="page" id="page-kitchen">
+        <div class="kit-hero">
+          <div class="kit-count" id="kitCount">—</div>
+          <div style="font-size:13px;opacity:.75;font-weight:600">ingredientes en tu despensa</div>
+          <div style="font-size:11px;opacity:.5;margin-top:4px" id="kitEmail"></div>
+        </div>
+        <div class="section-card">
+          <div class="sec-header">Ajustar cantidades</div>
+          <div class="add-form">
+            <input type="text" id="searchIngrid" class="search-ing" placeholder="🔍 Buscar ingrediente...">
+            <div id="ingridKitchen" class="ingrid"></div>
+            <input type="hidden" id="selectedIngId" value="">
+            <div class="field-row">
+              <input type="number" id="cantIn" class="num-in" placeholder="Cantidad" step="any" min="0.01">
+              <button class="btn-add-k" onclick="adj(1)">+ Agregar</button>
+              <button class="btn-sub-k" onclick="adj(-1)">− Retirar</button>
+            </div>
+          </div>
+        </div>
+        <div class="section-card">
+          <input class="search-in" id="invSearch" placeholder="Buscar en tu despensa..." oninput="renderInv()">
+          <div id="invList"></div>
+        </div>
+      </div>
+
+      <!-- ── NUEVA RECETA (con selector visual modal) ── -->
+      <div class="page" id="page-new">
+        <div class="form-hero">
+          <h2>Nueva receta</h2>
+          <p>Agrega tu platillo al recetario compartido</p>
+        </div>
+        <div class="form-section-wrap">
+          <div class="form-card">
+            <div class="form-field">
+              <div class="form-label">Nombre del platillo</div>
+              <input class="form-input" id="rNombre" placeholder="Ej: Tacos de frijol con epazote">
+            </div>
+            <div class="form-field">
+              <div class="form-label">URL de imagen (opcional)</div>
+              <input class="form-input" id="rImagen" placeholder="https://...">
+            </div>
+            <div class="form-field" style="border:none">
+              <div class="form-label">Instrucciones (una por línea)</div>
+              <textarea class="form-textarea" id="rInstr" placeholder="Calienta el comal a fuego medio&#10;Prepara los ingredientes&#10;Sirve caliente y disfruta"></textarea>
+            </div>
+          </div>
+          <div class="form-card" id="ingsCard">
+            <div class="sec-header">Ingredientes</div>
+            <div id="ingRows"></div>
+            <div class="add-ing-row" onclick="addIngRow()">
+              <div class="add-ing-icon">+</div>
+              Añadir ingrediente
+            </div>
+          </div>
+          <button class="save-btn-big" onclick="saveRecipe()">Guardar receta</button>
+          <div style="margin-top:4px">
+            <div class="admin-toggle" onclick="toggleAdmin()">
+              <span class="admin-toggle-txt">⚙ Panel de administración</span>
+              <span class="admin-arr" id="adminArr">›</span>
+            </div>
+            <div class="admin-body" id="adminBody">
+              <div class="admin-inner">
+                <div class="admin-note">Agregar ingrediente al catálogo global (requiere clave admin)</div>
+                <div class="admin-row">
+                  <input class="admin-in" id="adNombre" placeholder="Nombre del ingrediente">
+                  <select class="admin-sel" id="adTipo">
+                    <option value="unidad">Por piezas</option>
+                    <option value="metrico">Métrico (gr/ml)</option>
+                  </select>
+                </div>
+                <button class="admin-btn-ui" style="width:100%;margin-top:10px" onclick="adminAdd()">Agregar al catálogo</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /pages -->
+
+    <!-- BOTTOM TABS mobile -->
+    <div class="tabs">
+      <button class="tab active" data-page="recipes" onclick="goTab(this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Recetas
+      </button>
+      <button class="tab" data-page="kitchen" onclick="goTab(this)">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        Mi Cocina
+      </button>
+      <button class="tab" data-page="new" onclick="goTab(this)">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+        Nueva
+      </button>
+    </div>
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODAL SHEET (detalles receta) ══ -->
+<div class="overlay" id="overlay" onclick="closeSheet(event)">
+  <div class="sheet" id="sheet">
+    <div class="sheet-handle"></div>
+    <img id="shImg" src="" style="display:none">
+    <div class="sheet-body">
+      <div class="sheet-title" id="shTitle"></div>
+      <div class="sheet-avail" id="shAvail"></div>
+      <div class="sheet-stars-row">
+        <div class="stars" id="shStars"></div>
+        <span style="font-size:13px;color:#9ca3af" id="shVotes"></span>
+      </div>
+      <div class="sheet-label">Ingredientes</div>
+      <div class="ing-chip-list" id="shIngs"></div>
+      <div class="sheet-label">Instrucciones</div>
+      <ol class="steps-list" id="shSteps"></ol>
+      <button class="btn-cook-sheet" id="shCookBtn">🍳 Cocinar y descontar ingredientes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL SELECCIÓN INGREDIENTE (para nueva receta) ══ -->
+<div id="ingredientModal" class="ing-modal">
+  <div class="ing-modal-content">
+    <div class="ing-modal-title">Elige un ingrediente</div>
+    <input type="text" id="modalSearch" class="search-ing" placeholder="🔍 Buscar...">
+    <div id="globalIngridModal" class="ingrid"></div>
+    <button style="margin-top:16px; background:#eee; border:none; padding:10px; border-radius:40px;" onclick="closeIngredientModal()">Cerrar</button>
+  </div>
+</div>
+
+<script src="emojis.js"></script>
+<script>
+// ###########################################################
+// #  TODAS LAS FUNCIONES ORIGINALES (con modificaciones)   #
+// ###########################################################
+
+const $ = id => document.getElementById(id);
+let email = localStorage.getItem('ck_email') || '';
+let recipes = [], globalIngs = [], inventory = [], filter = 'all', openRecipeId = null;
+let pendingPickCallback = null; // para el modal de nueva receta
+
+// ---------- Login ----------
+function initEmail() {
+  if (!email) return;
+  $('sideEmailIn') && ($('sideEmailIn').value = email);
+  $('topEmailIn') && ($('topEmailIn').value = email);
+  showLoggedIn();
+}
+function showLoggedIn() {
+  $('sideUserLoggedIn').style.display = 'block';
+  $('sideLoginForm').style.display = 'none';
+  $('sideEmail').textContent = email;
+  $('sideAvatar').textContent = email[0].toUpperCase();
+  $('kitEmail').textContent = email;
+}
+function doLogin() {
+  const v = ($('sideEmailIn').value || $('topEmailIn').value || '').trim();
+  if (!v || !v.includes('@')) return alert('Correo válido requerido');
+  email = v;
+  localStorage.setItem('ck_email', email);
+  showLoggedIn();
+  loadAll();
+}
+$('sideEmailIn')?.addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+$('topEmailIn')?.addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+
+// ---------- API ----------
+async function api(url, opts={}) {
+  const r = await fetch(url, {headers:{'Content-Type':'application/json'}, ...opts});
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || 'Error');
+  return data;
+}
+
+// ---------- Carga de datos ----------
+async function loadAll() {
+  await Promise.all([loadGlobal(), loadRecipes(), email ? loadInv() : Promise.resolve()]);
+}
+async function loadRecipes() {
+  try {
+    const url = email ? `/api/recipes?email=${encodeURIComponent(email)}` : '/api/recipes';
+    recipes = await api(url);
+    renderRecipes();
+  } catch(e) {
+    $('recipesList').innerHTML = `<div style="padding:40px;text-align:center;color:#8fa07a;font-size:15px">No se pudieron cargar las recetas</div>`;
+  }
+}
+async function loadGlobal() {
+  try {
+    globalIngs = await api('/api/admin/ingredients');
+    // actualizar cuadrícula de cocina si está visible
+    if ($('page-kitchen')?.classList.contains('active')) {
+      renderKitchenGrid($('searchIngrid')?.value || '');
+    }
+  } catch(e) {}
+}
+async function loadInv() {
+  if (!email) return;
+  try {
+    inventory = await api(`/api/inventory?email=${encodeURIComponent(email)}`);
+    $('kitCount').textContent = inventory.length;
+    renderInv();
+  } catch(e) {}
+}
+
+// ---------- COCINA: cuadrícula visual ----------
+function renderKitchenGrid(searchTerm = '') {
+  const container = $('ingridKitchen');
+  if (!container) return;
+  let filtered = [...globalIngs];
+  if (searchTerm) filtered = filtered.filter(ing => ing.nombre.toLowerCase().includes(searchTerm.toLowerCase()));
+  const selectedId = $('selectedIngId').value;
+  container.innerHTML = filtered.map(ing => {
+    const icon = getIngredientIcon(ing.nombre);
+    const unitLabel = ing.tipoMedida === 'unidad' ? 'pza' : 'gr/ml';
+    return `
+      <div class="ingrid-card ${selectedId === ing._id ? 'selected' : ''}" data-id="${ing._id}">
+        <span class="ingrid-icon">${icon}</span>
+        <div class="ingrid-name">${ing.nombre}</div>
+        <div class="ingrid-unit">${unitLabel}</div>
+      </div>
+    `;
+  }).join('');
+  container.querySelectorAll('.ingrid-card').forEach(card => {
+    card.addEventListener('click', () => {
+      $('selectedIngId').value = card.dataset.id;
+      renderKitchenGrid($('searchIngrid')?.value || '');
+    });
+  });
+}
+// Buscador en cocina
+$('searchIngrid')?.addEventListener('input', e => renderKitchenGrid(e.target.value));
+
+async function adj(dir) {
+  if (!email) return alert('Inicia sesión primero');
+  const ingId = $('selectedIngId').value;
+  const cant = parseFloat($('cantIn').value);
+  if (!ingId) return alert('Selecciona un ingrediente de la cuadrícula');
+  if (!cant || cant <= 0) return alert('Cantidad inválida');
+  try {
+    await api('/api/inventory/adjust', { method: 'POST', body: JSON.stringify({ email, ingredienteId: ingId, cantidadDelta: dir * cant }) });
+    $('cantIn').value = '';
+    await loadInv(); await loadRecipes();
+  } catch(e) { alert(e.message); }
+}
+
+// ---------- NUEVA RECETA: filas con botón selector ----------
+function addIngRow() {
+  const container = $('ingRows');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = 'ing-row2';
+  div.innerHTML = `
+    <button type="button" class="ing-pick-btn" onclick="openIngredientPicker(this)">
+      <span class="ing-pick-icon">🔧</span>
+      <span class="selected-ing-info">Seleccionar ingrediente</span>
+    </button>
+    <input type="number" class="ingC" step="any" min="0.01" placeholder="Cantidad">
+    <button class="rm-ing" onclick="rmRow(this)">×</button>
+    <input type="hidden" class="ingIdHidden">
+  `;
+  container.appendChild(div);
+}
+function rmRow(btn) {
+  if (document.querySelectorAll('.ing-row2').length > 1) btn.parentElement.remove();
+}
+function openIngredientPicker(btn) {
+  const row = btn.closest('.ing-row2');
+  if (!row) return;
+  pendingPickCallback = (ingId) => {
+    const selectedIng = globalIngs.find(i => i._id === ingId);
+    if (selectedIng) {
+      const iconSpan = row.querySelector('.ing-pick-icon');
+      const infoSpan = row.querySelector('.selected-ing-info');
+      if (iconSpan) iconSpan.innerHTML = getIngredientIcon(selectedIng.nombre);
+      if (infoSpan) infoSpan.textContent = selectedIng.nombre;
+      row.querySelector('.ingIdHidden').value = ingId;
+    }
+  };
+  renderModalGrid('');
+  $('ingredientModal').style.display = 'flex';
+}
+function closeIngredientModal() {
+  $('ingredientModal').style.display = 'none';
+  pendingPickCallback = null;
+}
+function renderModalGrid(search = '') {
+  const container = $('globalIngridModal');
+  if (!container) return;
+  let filtered = [...globalIngs];
+  if (search) filtered = filtered.filter(ing => ing.nombre.toLowerCase().includes(search.toLowerCase()));
+  container.innerHTML = filtered.map(ing => {
+    const icon = getIngredientIcon(ing.nombre);
+    const unitLabel = ing.tipoMedida === 'unidad' ? 'pza' : 'gr/ml';
+    return `
+      <div class="ingrid-card" data-id="${ing._id}">
+        <span class="ingrid-icon">${icon}</span>
+        <div class="ingrid-name">${ing.nombre}</div>
+        <div class="ingrid-unit">${unitLabel}</div>
+      </div>
+    `;
+  }).join('');
+  container.querySelectorAll('.ingrid-card').forEach(card => {
+    card.addEventListener('click', () => {
+      if (pendingPickCallback) pendingPickCallback(card.dataset.id);
+      closeIngredientModal();
+    });
+  });
+}
+// Búsqueda en modal
+$('modalSearch')?.addEventListener('input', e => renderModalGrid(e.target.value));
+
+// Guardar receta (lee los hidden)
+async function saveRecipe() {
+  const nombre = $('rNombre').value.trim();
+  const imagenUrl = $('rImagen').value.trim();
+  const instrucciones = $('rInstr').value.split('\n').filter(l => l.trim());
+  const ingredientes = [];
+  document.querySelectorAll('#ingRows .ing-row2').forEach(row => {
+    const ingId = row.querySelector('.ingIdHidden').value;
+    const cant = parseFloat(row.querySelector('.ingC').value);
+    if (ingId && cant > 0) ingredientes.push({ ingredienteId: ingId, cantidadRequerida: cant });
+  });
+  if (!nombre || !instrucciones.length || !ingredientes.length)
+    return alert('Completa nombre, instrucciones y al menos un ingrediente');
+  try {
+    await api('/api/recipes', { method: 'POST', body: JSON.stringify({ nombre, imagenUrl, instrucciones, ingredientes }) });
+    alert('✅ Receta creada');
+    $('rNombre').value = '';
+    $('rImagen').value = '';
+    $('rInstr').value = '';
+    $('ingRows').innerHTML = '';
+    addIngRow(); // una fila vacía
+    filter = 'all';
+    const recipesTab = document.querySelector('[data-page="recipes"]');
+    if (recipesTab) goTab(recipesTab);
+    loadRecipes();
+  } catch(e) { alert(e.message); }
+}
+
+// ---------- Recetas (renderRecipes, openSheet, cook, etc.) ----------
+function renderRecipes() {
+  let list = [...recipes];
+  if (filter==='full') list = list.filter(r=>r.disponibilidad?.porcentaje>=0.999);
+  else if (filter==='partial') list = list.filter(r=>{ const p=r.disponibilidad?.porcentaje??0; return p>=0.3&&p<0.999; });
+  else if (filter==='top') list = list.sort((a,b)=>(b.avgScore||0)-(a.avgScore||0));
+  $('recCount').textContent = list.length + ' receta' + (list.length!==1?'s':'');
+  if (!list.length) {
+    $('recipesList').innerHTML = '<div style="grid-column:1/-1;padding:60px 20px;text-align:center;color:#8fa07a;font-size:32px">🥬<p style="font-size:15px;margin-top:12px;font-weight:600">Sin recetas en esta categoría</p></div>';
+    return;
+  }
+  $('recipesList').innerHTML = list.map((r, idx) => {
+    const p = r.disponibilidad?.porcentaje ?? -1;
+    const pct = p < 0 ? 0 : Math.round(p * 100);
+    const fillClass = p>=0.999 ? 'fill-full' : p>0 ? 'fill-partial' : 'fill-none';
+    const badgeHtml = p<0 ? '' : p>=0.999
+      ? '<span class="rcard-badge badge-full">✓ Listo</span>'
+      : p>0
+      ? `<span class="rcard-badge badge-partial">${r.disponibilidad.disponibles}/${r.disponibilidad.totalIng}</span>`
+      : '<span class="rcard-badge badge-none">Sin ingredientes</span>';
+    const avg = r.avgScore||0;
+    const us = r.userScore||0;
+    const starsHtml = [1,2,3,4,5].map(n =>
+      `<span class="s${us>=n?' on':''}" data-rid="${r._id}" data-v="${n}">★</span>`
+    ).join('');
+    const canCook = p>=0.999 && email;
+    const imgHtml = r.imagenUrl
+      ? `<img class="rcard-img" src="${r.imagenUrl}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=rcard-img-placeholder>🍽</div>'">`
+      : `<div class="rcard-img-placeholder">🍽</div>`;
+    return `<div class="rcard${p>=0.999?' have-all':''}" style="animation-delay:${idx*40}ms">
+      <div class="rcard-img-wrap">
+        ${imgHtml}
+        ${badgeHtml}
+        <div class="rcard-status-bar"><div class="${fillClass} rcard-status-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="rcard-body">
+        <div class="rcard-title">${r.nombre}</div>
+        <div class="rcard-meta">
+          <div class="stars">${starsHtml}</div>
+          <span class="vote-txt">${avg.toFixed(1)} · ${r.totalVotes||0} votos</span>
+        </div>
+        <div class="rcard-actions">
+          <button class="btn btn-ghost btn-sm" onclick="openSheet('${r._id}')">Ver receta</button>
+          ${canCook ? `<button class="btn btn-primary btn-sm" onclick="cook('${r._id}',event)">🍳 Cocinar</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('.s').forEach(s => {
+    s.onclick = async e => {
+      e.stopPropagation();
+      if (!email) return alert('Inicia sesión para votar');
+      await api(`/api/recipes/rate/${s.dataset.rid}`,{method:'POST',body:JSON.stringify({email,score:+s.dataset.v})});
+      loadRecipes();
+    };
+  });
+}
+
+document.querySelectorAll('.chip').forEach(c => {
+  c.onclick = () => {
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    filter = c.dataset.f;
+    renderRecipes();
+  };
+});
+
+function renderInv() {
+  const q = ($('invSearch').value || '').toLowerCase().trim();
+  let items = [...inventory];
+  if (q) items = items.filter(i => {
+    const nombre = i.ingredienteId?.nombre || i.ingredienteId || 'sin nombre';
+    return nombre.toLowerCase().includes(q);
+  });
+  $('kitCount').textContent = inventory.length;
+  if (!items.length) {
+    $('invList').innerHTML = '<div class="empty-state">🌿<p>Tu despensa está vacía</p></div>';
+    return;
+  }
+  $('invList').innerHTML = items.map((i, idx) => {
+    // Extrae el nombre de forma segura
+    let nombre = 'Desconocido';
+    let tipo = 'unidad';
+    if (i.ingredienteId) {
+      if (typeof i.ingredienteId === 'object') {
+        nombre = i.ingredienteId.nombre || i.ingredienteId._id;
+        tipo = i.ingredienteId.tipoMedida || 'unidad';
+      } else if (typeof i.ingredienteId === 'string') {
+        nombre = i.ingredienteId; // fallback, muestra el ID
+      }
+    } else {
+      nombre = 'ID inválido';
+    }
+    return `<div class="inv-item" style="animation-delay:${idx*30}ms">
+      <div>
+        <div class="inv-name">${nombre}</div>
+        <div class="inv-type">${tipo === 'unidad' ? 'Por piezas' : 'Métrico'}</div>
+      </div>
+      <div style="text-align:right">
+        <span class="inv-qty">${i.cantidad}</span>
+        <span class="inv-unit">${tipo === 'unidad' ? 'pzas' : 'gr/ml'}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openSheet(id) {
+  const r = recipes.find(x=>x._id===id);
+  if (!r) return;
+  openRecipeId = id;
+  $('shTitle').textContent = r.nombre;
+  const img=$('shImg');
+  if (r.imagenUrl){img.src=r.imagenUrl;img.style.display='block';}else{img.style.display='none';}
+  const p = r.disponibilidad?.porcentaje??-1;
+  $('shAvail').innerHTML = p>=0.999
+    ? '<span style="color:var(--g600);font-weight:700">✓ Tienes todos los ingredientes</span>'
+    : p>0
+    ? `<span style="color:var(--warn-txt);font-weight:700">${r.disponibilidad.disponibles}/${r.disponibilidad.totalIng} ingredientes disponibles</span>`
+    : '';
+  const avg=r.avgScore||0, us=r.userScore||0;
+  $('shStars').innerHTML = [1,2,3,4,5].map(n=>`<span class="s${us>=n?' on':''}" data-rid="${r._id}" data-v="${n}" style="font-size:22px">★</span>`).join('');
+  $('shVotes').textContent = `${avg.toFixed(1)} · ${r.totalVotes||0} votos`;
+  $('shIngs').innerHTML = r.ingredientes.map(i=>
+    `<span class="ing-chip">${i.ingredienteId.nombre} · ${i.cantidadRequerida} ${i.ingredienteId.tipoMedida==='unidad'?'pzas':'gr/ml'}</span>`
+  ).join('');
+  $('shSteps').innerHTML = r.instrucciones.map(s=>
+    `<li><div class="step-num"></div><span>${s}</span></li>`
+  ).join('');
+  const canCook = p>=0.999 && email;
+  const btn=$('shCookBtn');
+  btn.disabled=!canCook;
+  btn.textContent=canCook?'🍳 Cocinar y descontar ingredientes':'🔒 No tienes todos los ingredientes';
+  $('overlay').classList.add('show');
+  $('shStars').querySelectorAll('.s').forEach(s=>{
+    s.onclick=async e=>{
+      e.stopPropagation();
+      if(!email)return alert('Inicia sesión para votar');
+      await api(`/api/recipes/rate/${s.dataset.rid}`,{method:'POST',body:JSON.stringify({email,score:+s.dataset.v})});
+      loadRecipes();
+    };
+  });
+}
+$('shCookBtn').onclick=async()=>{if(!openRecipeId)return;await cook(openRecipeId);closeSheet();};
+
+async function cook(id,e) {
+  if(e)e.stopPropagation();
+  if(!email)return alert('Inicia sesión primero');
+  try {
+    await api(`/api/recipes/cook/${id}`,{method:'POST',body:JSON.stringify({email})});
+    alert('✅ ¡Platillo cocinado! Ingredientes descontados.');
+    await loadInv(); loadRecipes();
+  } catch(err){alert('Error: '+err.message);}
+}
+function closeSheet(e){if(!e||e.target===$('overlay'))$('overlay').classList.remove('show');}
+
+function goTab(btn) {
+  const page = btn.dataset.page;
+  document.querySelectorAll('.snav-item,.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('[data-page="'+page+'"]').forEach(t=>t.classList.add('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  $('page-'+page).classList.add('active');
+  if(page==='kitchen'){ loadGlobal(); loadInv(); renderKitchenGrid($('searchIngrid')?.value || ''); }
+  if(page==='new'){ loadGlobal(); if($('ingRows').children.length===0) addIngRow(); }
+}
+
+function toggleAdmin(){
+  $('adminBody').classList.toggle('open');
+  $('adminArr').classList.toggle('open');
+}
+async function adminAdd(){
+  const nombre=$('adNombre').value.trim();
+  const tipoMedida=$('adTipo').value;
+  if(!nombre)return alert('Escribe el nombre');
+  const secret=prompt('Clave de administrador:');
+  if(!secret)return;
+  try {
+    const r=await fetch('/api/admin/ingredients',{method:'POST',headers:{'Content-Type':'application/json','x-admin-secret':secret},body:JSON.stringify({nombre,tipoMedida})});
+    const data=await r.json();
+    if(!r.ok)return alert(data.error);
+    alert('Ingrediente agregado');
+    $('adNombre').value='';
+    await loadGlobal();
+  } catch(e){alert('Error');}
+}
+
+// Inicialización
+initEmail();
+loadAll();
+$('ingredientModal')?.addEventListener('click', (e) => { if (e.target === $('ingredientModal')) closeIngredientModal(); });
+// Asegurar que al menos una fila de ingrediente exista en nueva receta
+if($('ingRows') && $('ingRows').children.length === 0) addIngRow();
+</script>
+</body>
+</html>
