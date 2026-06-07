@@ -1,8 +1,6 @@
-¡Perfecto! A continuación, presento un **resumen ejecutivo**, un **mini reporte técnico** y una **guía de usuario** del sistema desarrollado.
 
----
 
-## 📋 Resumen ejecutivo
+## 📋 Resumen
 
 El sistema **Mini Cocina** es una aplicación web full‑stack (Node.js + MongoDB) que permite a los usuarios gestionar su despensa personal, crear y calificar recetas, y “cocinar” platillos descontando automáticamente los ingredientes disponibles.  
 
